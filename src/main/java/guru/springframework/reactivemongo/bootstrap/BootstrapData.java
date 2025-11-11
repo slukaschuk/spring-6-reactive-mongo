@@ -1,10 +1,14 @@
 package guru.springframework.reactivemongo.bootstrap;
 
 import guru.springframework.reactivemongo.domain.Beer;
+import guru.springframework.reactivemongo.domain.Customer;
 import guru.springframework.reactivemongo.repositories.BeerRepository;
+import guru.springframework.reactivemongo.repositories.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +21,7 @@ import java.time.LocalDateTime;
 public class BootstrapData implements CommandLineRunner {
 
     private final BeerRepository beerRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -24,7 +29,11 @@ public class BootstrapData implements CommandLineRunner {
                 .doOnSuccess(success -> {
                     loadBeerData();
                 })
-                        .subscribe();
+                .subscribe();
+
+        customerRepository.deleteAll()
+                .then(loadCustomerData())
+                .subscribe();
     }
 
     private void loadBeerData() {
@@ -74,5 +83,20 @@ public class BootstrapData implements CommandLineRunner {
                 System.out.println("Loaded Beers: " + beerRepository.count().block());
             }
         });
+    }
+
+    private Mono<Void> loadCustomerData() {
+        return customerRepository.count()
+                .filter(count -> count == 0)
+                .flatMapMany(ignored -> Flux.just(
+                        Customer.builder().customerName("Serhii")
+                                .createdDate(LocalDateTime.now())
+                                .lastModifiedDate(LocalDateTime.now()).build(),
+                        Customer.builder().customerName("Inna")
+                                .createdDate(LocalDateTime.now())
+                                .lastModifiedDate(LocalDateTime.now()).build()
+                        ))
+                .flatMap(customerRepository::save)
+                .then();
     }
 }
