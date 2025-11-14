@@ -18,7 +18,7 @@ public class SpringSecConfig {
 
     @Bean
     @Order(1)
-    public SecurityWebFilterChain actutatorSecurityFilterChain(ServerHttpSecurity http) throws Exception {
+    public SecurityWebFilterChain actuatorSecurityFilterChain(ServerHttpSecurity http) {
         http.securityMatcher(EndpointRequest.toAnyEndpoint())
                 .authorizeExchange(authorize -> authorize.anyExchange().permitAll());
 
@@ -26,8 +26,8 @@ public class SpringSecConfig {
     }
 
     @Bean
-    @Order
-    SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http){
+    @Order(2)
+    SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http.authorizeExchange(authorizeExchangeSpec -> authorizeExchangeSpec.anyExchange().authenticated())
                 .oauth2ResourceServer(oAuth2ResourceServerSpec -> oAuth2ResourceServerSpec.jwt(Customizer.withDefaults()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable);
